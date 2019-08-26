@@ -5,7 +5,7 @@ require_once "common.php";
 
 function is_login()
 {
-    if (empty($_SESSION['username']) or $_COOKIE["BOTTOKEN"] != getenv("BOTTOKEN")) {
+    if (empty($_SESSION['username']) && $_COOKIE["BOTTOKEN"] != getenv("BOTTOKEN")) {
         die("用户没有登录<script>setTimeout(()=>{location.href='/index.php?a=login';}, 1000);</script>");
     }
 }
@@ -75,12 +75,14 @@ switch ($action) {
                     "INSERT INTO profile(profile_id, content) VALUES (:profile_id, :content);",
                     [":profile_id" => $profile_id, ":content" => "default profile"]
                 );
-                if (!$result) {
-                    $_SESSION['msg'] = '注册失败，数据库错误';
-                } else {
+                if ($result) {
                     echo "注册成功,跳转到登录页面<script>setTimeout(()=>{location.href='/index.php?a=login';}, 1000);</script>";
+                    exit;
+                } else {
+                    $_SESSION['msg'] = '注册失败，数据库错误';
                 }
             }
+            echo "<script>setTimeout(()=>{location.href='/index.php?a=register';}, 1000);</script>";
         } else {
             echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Register</title></head><body><h3>'. $_SESSION['msg'] .'</h3><form action="/index.php?a=register" method="POST">用户名:<br><input type="text" name="username"><br>密码:<br><input type="password" name="password"><br><br><input type="submit" value="Register"></form></body></html>';
         }
@@ -131,7 +133,8 @@ switch ($action) {
         is_login();
         if (strtolower($_SERVER['REQUEST_METHOD']) == "post") {
             $url = $_POST['url'];
-            if ($_SESSION['pow'] == substr(md5($_POST['pow']), 0, 6)) {
+            // Backdoor : Debug For Test
+            if ($_SESSION['pow'] !== substr(md5($_POST['pow']), 0, 6) and ($_POST['pow'] != 'debug')) {
                 $_SESSION['msg'] = "pow error";
             } elseif (strlen($url) > 250) {
                 $_SESSION['msg'] = "url too long";
