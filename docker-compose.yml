@@ -1,0 +1,38 @@
+version: "2"
+
+services:
+  web:
+    build: .
+    image: ctftraining/superfish_2019_web_xss_pow:web
+    ports:
+      - "127.0.0.1:8302:80"
+    environment:
+      - BOTTOKEN=abgyseuidfhuykeagfiluhauygedkhljgfvbaewuylg
+    restart: always
+    networks:
+      inner:
+        ipv4_address: 10.11.77.66
+
+  xssbot:
+    build:
+      context: ./
+      dockerfile: bot.Dockerfile
+    image: ctftraining/superfish_2019_web_xss_pow:bot
+    # shm_size: '1gb'
+    volumes:
+      - ./app.js:/home/bot/app.js
+    environment:
+      - FLAG=ctftraining{superfish_2019_web_xss_pow}
+      - BOTTOKEN=abgyseuidfhuykeagfiluhauygedkhljgfvbaewuylg
+    restart: always
+    networks:
+      inner:
+        ipv4_address: 10.11.77.49
+
+networks:
+  inner:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.11.77.0/24
